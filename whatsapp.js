@@ -37,6 +37,7 @@ class WhatsAppService extends EventEmitter {
 
         const puppeteerConfig = {
             headless: true,
+            timeout: 120000,
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
@@ -60,7 +61,8 @@ class WhatsAppService extends EventEmitter {
 
         this.client = new Client({
             authStrategy: authStrategy,
-            puppeteer: puppeteerConfig
+            puppeteer: puppeteerConfig,
+            authTimeoutMs: 120000
         });
 
         // RemoteAuth specific events
