@@ -15,7 +15,7 @@ class WhatsAppService extends EventEmitter {
     }
 
     async initializeClient() {
-        let authStrategy = new LocalAuth({ dataPath: './.wwebjs_auth' });
+        let authStrategy = new LocalAuth({ dataPath: '/tmp/.wwebjs_auth' });
 
         const puppeteerConfig = {
             headless: true,
