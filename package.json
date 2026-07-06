@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node migrate_to_mongo.js && node index.js",
+    "start": "node index.js",
     "dev": "nodemon index.js"
   },
   "keywords": [],
