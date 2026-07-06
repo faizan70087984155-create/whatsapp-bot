@@ -9,7 +9,7 @@ const app = express();
 
 // Start the background autonomous AI outreach worker
 startAutoOutreach(waService);
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());

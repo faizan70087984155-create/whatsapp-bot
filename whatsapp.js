@@ -43,8 +43,6 @@ class WhatsAppService extends EventEmitter {
             puppeteerConfig.executablePath = chromePath;
         } else if (process.platform === 'win32') {
             puppeteerConfig.executablePath = defaultWinPath;
-        } else if (process.platform === 'linux') {
-            puppeteerConfig.executablePath = '/usr/bin/google-chrome';
         }
 
         this.client = new Client({
