@@ -103,7 +103,7 @@ If they ask for a specific service, quote the exact price from this list and pit
     while (retries > 0) {
         try {
             const msg = await anthropic.messages.create({
-                model: "claude-haiku-4-5-20251001", // The fastest, cheapest model
+                model: "claude-haiku-4-5-20251001",
                 system: systemPrompt,
                 messages: [
                     { role: "user", content: `Conversation History:\n${historyText}\n\nClient's New Message: ${userMessage}\n\nRespond directly as the Salesman to the client's new message. Give a complete thought and do not trail off.` }
@@ -292,7 +292,7 @@ KNOWLEDGE BASE (MEMORIZE THIS):
                 system: systemPrompt,
                 messages: [{ role: "user", content: "Write the outreach message now." }],
                 temperature: 0.8,
-                max_tokens: 300
+                max_tokens: 800
             });
 
             if (!msg || !msg.content || !msg.content[0] || !msg.content[0].text) {
