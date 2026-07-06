@@ -41,10 +41,7 @@ const Campaign = mongoose.model('Campaign', campaignSchema);
 async function connectDB(uri) {
     if (mongoose.connection.readyState === 1) return; // Already connected
     try {
-        await mongoose.connect(uri, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true
-        });
+        await mongoose.connect(uri);
         console.log('Connected to MongoDB Cloud successfully!');
     } catch (error) {
         console.error('MongoDB connection error:', error.message);
