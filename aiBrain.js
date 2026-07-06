@@ -232,7 +232,7 @@ async function autoReplyBrain(waService, phone, messageText, rawName, chatId = n
     }
     
     // Attempt to find the lead to track conversation state
-    let lead = await dbGet('SELECT * FROM leads WHERE phone = ?', [phone]);
+    let lead = await Lead.findOne({ phone: phone });
 
     let stage = 0;
     let finalLangKey = null;
@@ -246,7 +246,7 @@ async function autoReplyBrain(waService, phone, messageText, rawName, chatId = n
         // Dynamic Language: Always use the language detected from their latest message
         finalLangKey = currentLangKey;
         if (lead.bot_lang !== finalLangKey) {
-            await dbRun('UPDATE leads SET bot_lang = ? WHERE id = ?', [finalLangKey, lead.id]);
+            await Lead.updateOne({ _id: lead._id }, { bot_lang: finalLangKey });
         }
     } else {
         finalLangKey = currentLangKey;
