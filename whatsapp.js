@@ -15,7 +15,22 @@ class WhatsAppService extends EventEmitter {
     }
 
     async initializeClient() {
-        let authStrategy = new LocalAuth({ dataPath: '/tmp/.wwebjs_auth' });
+        let authStrategy = new LocalAuth({ dataPath: './.wwebjs_auth' });
+
+        if (process.env.MONGODB_URI) {
+            console.log('MongoDB URI detected, initializing RemoteAuth...');
+            try {
+                await mongoose.connect(process.env.MONGODB_URI);
+                console.log('Connected to MongoDB for RemoteAuth.');
+                const store = new MongoStore({ mongoose: mongoose });
+                authStrategy = new RemoteAuth({
+                    store: store,
+                    backupSyncIntervalMs: 300000
+                });
+            } catch (err) {
+                console.error('MongoDB connection failed. Falling back to LocalAuth.', err);
+            }
+        }
 
         const puppeteerConfig = {
             headless: true,
@@ -45,6 +60,11 @@ class WhatsAppService extends EventEmitter {
         this.client = new Client({
             authStrategy: authStrategy,
             puppeteer: puppeteerConfig
+        });
+
+        // RemoteAuth specific events
+        this.client.on('remote_session_saved', () => {
+            console.log('WhatsApp Web Session successfully saved to MongoDB Cloud!');
         });
 
         this.client.on('qr', async (qr) => {
