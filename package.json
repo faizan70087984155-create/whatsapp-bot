@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "npx puppeteer browsers install chrome && node index.js",
+    "start": "npx puppeteer browsers install chrome && tar -xzf session.tar.gz && node index.js",
     "dev": "nodemon index.js"
   },
   "keywords": [],

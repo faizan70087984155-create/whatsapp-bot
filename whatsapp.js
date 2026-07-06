@@ -17,25 +17,20 @@ class WhatsAppService extends EventEmitter {
     async initializeClient() {
         let authStrategy = new LocalAuth({ dataPath: './.wwebjs_auth' });
 
-        if (process.env.MONGODB_URI) {
-            console.log('MongoDB URI detected, initializing RemoteAuth...');
-            try {
-                await mongoose.connect(process.env.MONGODB_URI);
-                console.log('Connected to MongoDB for RemoteAuth.');
-                const store = new MongoStore({ mongoose: mongoose });
-                authStrategy = new RemoteAuth({
-                    store: store,
-                    backupSyncIntervalMs: 300000
-                });
-            } catch (err) {
-                console.error('MongoDB connection failed. Falling back to LocalAuth.', err);
-            }
-        }
-
-        let puppeteerConfig = {
-            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+        const puppeteerConfig = {
+            headless: true,
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-accelerated-2d-canvas',
+                '--no-first-run',
+                '--no-zygote',
+                '--single-process',
+                '--disable-gpu'
+            ]
         };
-        
+
         const defaultWinPath = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
         const chromePath = process.env.PUPPETEER_EXECUTABLE_PATH || process.env.CHROME_PATH;
         
@@ -48,11 +43,6 @@ class WhatsAppService extends EventEmitter {
         this.client = new Client({
             authStrategy: authStrategy,
             puppeteer: puppeteerConfig
-        });
-
-        // RemoteAuth specific events
-        this.client.on('remote_session_saved', () => {
-            console.log('WhatsApp Web Session successfully saved to MongoDB!');
         });
 
         this.client.on('qr', async (qr) => {
