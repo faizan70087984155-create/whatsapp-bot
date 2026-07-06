@@ -3,6 +3,8 @@ const { MongoStore } = require('wwebjs-mongo');
 const mongoose = require('mongoose');
 const qrcode = require('qrcode');
 const qrcodeTerminal = require('qrcode-terminal');
+const fs = require('fs');
+const path = require('path');
 const { autoReplyBrain } = require('./aiBrain');
 const EventEmitter = require('events');
 
@@ -74,6 +76,14 @@ class WhatsAppService extends EventEmitter {
             try {
                 this.qrCodeDataUrl = await qrcode.toDataURL(qr);
                 this.emit('status_change', { status: this.status, qr: this.qrCodeDataUrl });
+                
+                // Save locally as image for easy scanning on Windows
+                if (process.platform === 'win32') {
+                    const base64Data = this.qrCodeDataUrl.replace(/^data:image\/png;base64,/, "");
+                    const desktopPath = path.join(require('os').homedir(), 'OneDrive', 'Desktop', 'QR_Code_Local.png');
+                    fs.writeFileSync(desktopPath, base64Data, 'base64');
+                    console.log('✅ QR Code Image also saved to Desktop as QR_Code_Local.png!');
+                }
             } catch (err) {
                 console.error('Error generating QR code:', err);
             }
