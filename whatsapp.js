@@ -27,7 +27,8 @@ class WhatsAppService extends EventEmitter {
                 const store = new MongoStore({ mongoose: mongoose });
                 authStrategy = new RemoteAuth({
                     store: store,
-                    backupSyncIntervalMs: 300000
+                    backupSyncIntervalMs: 300000,
+                    dataPath: './'
                 });
             } catch (err) {
                 console.error('MongoDB connection failed. Falling back to LocalAuth.', err);
