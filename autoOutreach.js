@@ -101,12 +101,22 @@ async function startAutoOutreach(waService) {
                 await new Promise(r => setTimeout(r, distractionMs));
             }
 
+            const chatId = targetLead.phone.includes('@') ? targetLead.phone : `${targetLead.phone}@c.us`;
+            
+            // Check if the number actually exists on WhatsApp before wasting AI tokens
+            const isRegistered = await waService.client.isRegisteredUser(chatId);
+            if (!isRegistered) {
+                console.log(`[Auto-Outreach] Skipping Lead ID ${targetLead._id} because the number is NOT on WhatsApp: ${targetLead.phone}`);
+                await Lead.updateOne({ _id: targetLead._id }, { status: 'Skipped_Invalid', tags: '' });
+                nextDelayMs = 2000; // Check the next one immediately
+                throw new Error("INVALID_SKIPPED");
+            }
+
             // Generate Smart AI Message
             const message = await generateAIOutreach(safeName, isFollowUp);
             if (!message) throw new Error("AI generated empty message");
 
-            const chatId = targetLead.phone.includes('@') ? targetLead.phone : `${targetLead.phone}@c.us`;
-            const chat = await waService.client.getChatById(chatId);
+            const chat = await waService.client.getChatById(chatId).catch(() => null);
 
             // Extreme Safety Delays before sending (simulate human typing/thinking)
             const prepDelay = Math.floor(Math.random() * (3000 - 1000 + 1) + 1000);
@@ -123,15 +133,23 @@ async function startAutoOutreach(waService) {
             }
 
             // Send via WA
-            await waService.client.sendMessage(chatId, message);
-            console.log(`[Auto-Outreach] Successfully sent ${isFollowUp ? 'Follow-Up' : 'First Message'} to ${targetLead.phone}`);
+            try {
+                await waService.client.sendMessage(chatId, message);
+                console.log(`[Auto-Outreach] Successfully sent ${isFollowUp ? 'Follow-Up' : 'First Message'} to ${targetLead.phone}`);
 
-            // Update Database
-            const newStatus = isFollowUp ? 'Followed_Up' : 'Sent';
-            await Lead.updateOne(
-                { _id: targetLead._id },
-                { status: newStatus, tags: '', last_messaged_at: new Date() }
-            );
+                // Update Database
+                const newStatus = isFollowUp ? 'Followed_Up' : 'Sent';
+                await Lead.updateOne(
+                    { _id: targetLead._id },
+                    { status: newStatus, tags: '', last_messaged_at: new Date() }
+                );
+            } catch (sendError) {
+                console.log(`[Auto-Outreach] Failed to send message to ${targetLead.phone}: ${sendError.message}`);
+                await Lead.updateOne(
+                    { _id: targetLead._id },
+                    { status: 'Failed', tags: 'Send_Error', last_messaged_at: new Date() }
+                );
+            }
 
             // ORGANIC DISTRIBUTION: Random delay between 17 to 21 minutes to distribute exactly ~70-80 msgs over 24 hours safely
             nextDelayMs = Math.floor(Math.random() * (21 * 60 * 1000 - 17 * 60 * 1000 + 1)) + 17 * 60 * 1000;
