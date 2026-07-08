@@ -29,6 +29,37 @@ waService.on('reply_received', async (data) => {
     }
 });
 
+// --- Frontend Route ---
+app.get('/', (req, res) => {
+    res.send(`
+    <html>
+        <head><title>WhatsApp Bot Status</title></head>
+        <body style="font-family: sans-serif; text-align: center; margin-top: 50px;">
+            <h1>Auto-Outreach Bot is Running</h1>
+            <p>Status: <span id="status">Loading...</span></p>
+            <img id="qrcode" src="" style="display: none; margin: 0 auto; border: 1px solid #ccc; padding: 10px;" />
+            <script>
+                async function checkStatus() {
+                    try {
+                        const res = await fetch('/api/whatsapp/status');
+                        const data = await res.json();
+                        document.getElementById('status').innerText = data.status;
+                        if (data.status === 'AWAITING_SCAN' && data.qr) {
+                            document.getElementById('qrcode').src = data.qr;
+                            document.getElementById('qrcode').style.display = 'block';
+                        } else {
+                            document.getElementById('qrcode').style.display = 'none';
+                        }
+                    } catch(e) {}
+                }
+                setInterval(checkStatus, 3000);
+                checkStatus();
+            </script>
+        </body>
+    </html>
+    `);
+});
+
 // --- WhatsApp Routes ---
 
 app.get('/api/whatsapp/status', async (req, res) => {
